@@ -6,7 +6,7 @@
 <meta name="description" content="Zelfstandige etikettenmaker voor acht etiketten op A4. Werkt lokaal in de browser, zonder installatie of internetverbinding.">
 <title>Etikettenmaker</title>
 <style>
-:root { --label-w:100mm; --label-h:70mm; --page-w:210mm; --page-h:297mm; --top:7mm; --x-offset:0mm; }
+:root { --label-w:106mm; --label-h:69mm; --page-w:210mm; --page-h:297mm; --top:7mm; --bottom:10mm; --x-offset:0mm; --frame-width:1px; }
 * { box-sizing:border-box; }
 body { margin:0; font:15px/1.4 Arial, Helvetica, sans-serif; background:#f2f4f7; color:#20242a; }
 header { padding:16px; background:#183b56; color:white; }
@@ -28,21 +28,22 @@ button { border:0; border-radius:8px; padding:10px 12px; cursor:pointer; font-we
 .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
 .preview-wrap { overflow:auto; padding:12px; background:#dfe4e8; border-radius:10px; }
 .sheet { width:210mm; height:297mm; background:white; position:relative; margin:0 auto; box-shadow:0 2px 12px #0003; overflow:hidden; }
-.labels { position:absolute; top:var(--top); left:calc(5mm + var(--x-offset)); width:200mm; height:280mm; display:grid; grid-template-columns:repeat(2,100mm); grid-template-rows:repeat(4,70mm); gap:0; }
-.label { box-sizing:border-box; width:100mm; height:70mm; min-width:100mm; min-height:70mm; border:1px solid #555; position:relative; padding:4mm 5mm; overflow:hidden; background:#fff; color:#111; font-family:Arial, Helvetica, sans-serif; }
+.labels { position:absolute; top:var(--top); left:var(--x-offset); width:212mm; height:calc(297mm - var(--top) - var(--bottom)); display:grid; grid-template-columns:repeat(2,106mm); grid-template-rows:repeat(4,69mm); row-gap:calc((297mm - var(--top) - var(--bottom) - 276mm) / 3); column-gap:0; transform-origin:center center; }
+.label { box-sizing:border-box; width:106mm; height:69mm; min-width:106mm; min-height:69mm; border:var(--frame-width) solid #555; position:relative; padding:4mm 5mm; overflow:hidden; background:#fff; color:#111; font-family:Arial, Helvetica, sans-serif; }
 .label.selected { outline:2px solid #1683a5; outline-offset:-3px; }
 .label [contenteditable=true]:focus { background:transparent !important; }
-.label .line { display:block; width:72%; min-height:1em; border:0; padding:0; margin:0; outline:none; white-space:pre-wrap; overflow-wrap:anywhere; background:transparent; color:inherit; font-family:Arial, Helvetica, sans-serif; }
-.label .mark { position:absolute; right:3mm; top:50%; transform:translateY(-50%); width:19mm; height:19mm; display:flex; align-items:center; justify-content:center; border:1.2mm solid #111; border-radius:50%; font-size:28pt; font-weight:800; text-align:center; line-height:1; overflow:hidden; padding:0; background:white; color:#111; }
+.label .line { display:block; width:68%; min-height:1em; border:0; padding:0; margin:0; outline:none; white-space:pre-wrap; overflow-wrap:anywhere; background:transparent; color:inherit; font-family:Arial, Helvetica, sans-serif; text-align:left; }
+.label .title-row { width:100%; display:flex; align-items:stretch; border:1px solid #111; margin:0 0 3mm; min-height:12mm; }
+.label .title { flex:1; width:auto; font-weight:700; font-size:13pt; text-align:left; padding:1.5mm 2mm; min-height:10mm; }
+.label .product-code { width:25mm; min-width:25mm; border-left:1px solid #111; font-size:10pt; font-weight:700; text-align:right; padding:1.5mm 1.5mm; display:flex; align-items:center; justify-content:flex-end; }
+.label .desc { font-size:10.5pt; font-weight:400; margin:0 0 2mm; }
+.label .qty { font-size:10.5pt; margin:0 0 3mm; }
+.label .company { font-size:10.5pt; margin-top:3mm; }
+.label .street { font-size:8pt; margin-top:1mm; }
+.label .postcode { font-size:8pt; margin:0; line-height:1.25; }
+.label .city { font-size:8pt; margin:0; padding-bottom:1mm; line-height:1.25; }
+.label .mark { position:absolute; right:4mm; top:50%; transform:translateY(-50%); width:19mm; height:19mm; min-height:19mm; display:flex; align-items:center; justify-content:center; border:1.2mm solid #111; border-radius:50%; font-size:28pt; font-weight:800; text-align:center; line-height:1; overflow:hidden; padding:0; background:white; color:#111; }
 .label .mark:focus { background:transparent; }
-.label .title { font-weight:700; font-size:13pt; text-align:center; margin:0 0 3mm; border:1px solid #111; padding:1mm 1mm; width:100%; }
-.label .desc { font-size:10.5pt; font-weight:400; text-align:center; margin:0 0 2mm; }
-.label .grade { font-size:10.5pt; font-weight:400; text-align:center; margin:0 0 2mm; }
-.label .qty { font-size:10.5pt; font-weight:400; text-align:center; margin:0 0 3mm; }
-.label .company { font-size:10.5pt; text-align:center; margin-top:3mm; }
-.label .street { font-size:8pt; text-align:center; margin-top:1mm; }
-.label .postcode { font-size:8pt; text-align:center; margin:0; line-height:1.25; }
-.label .city { font-size:8pt; text-align:center; margin:0; padding-bottom:1mm; line-height:1.25; }
 .label .line:focus { background:transparent; }
 .label .line[contenteditable=true]:empty:before { content:"Klik om tekst toe te voegen"; color:#9aa2aa; }
 .label .mark.shape-square { border-radius:0 !important; }
@@ -57,8 +58,9 @@ button { border:0; border-radius:8px; padding:10px 12px; cursor:pointer; font-we
   .preview-panel { padding:0; box-shadow:none; border-radius:0; }
   .preview-wrap { padding:0; background:white; overflow:visible; }
   .sheet { width:210mm; height:297mm; margin:0; box-shadow:none; overflow:hidden; transform:none !important; }
-  .labels { left:calc(5mm + var(--x-offset)) !important; top:7mm !important; width:200mm; height:280mm; grid-template-columns:repeat(2,100mm); grid-template-rows:repeat(4,70mm); }
-  .label { width:100mm; height:70mm; min-width:100mm; min-height:70mm; }
+  .labels { left:var(--x-offset) !important; top:var(--top) !important; width:212mm; height:calc(297mm - var(--top) - var(--bottom)); grid-template-columns:repeat(2,106mm); grid-template-rows:repeat(4,69mm); row-gap:calc((297mm - var(--top) - var(--bottom) - 276mm) / 3); }
+  .label { width:106mm; height:69mm; min-width:106mm; min-height:69mm; }
+  .labels.rotate-print { transform:rotate(180deg); }
   .label.selected { outline:none; }
   .label .line:focus { background:transparent; }
   .label .line[contenteditable=true]:empty:before { content:none !important; display:none !important; }
@@ -80,9 +82,9 @@ button { border:0; border-radius:8px; padding:10px 12px; cursor:pointer; font-we
     <h2>Gegevens van de etiketten</h2>
     <div class="small">Wijzigingen in de invoervelden worden toegepast op alle 8 etiketten. Klik op tekst in het voorbeeld om één etiket afzonderlijk aan te passen.</div>
     <label for="product">Productnaam</label><input id="product" type="text" value="Biologische Herbal Chai Spice">
-    <label for="description">Omschrijving / opdracht</label><input id="description" type="text" value="5x20.000 vouwplakken">
-    <label for="grade">Sortering / kwaliteit (optioneel)</label><input id="grade" type="text" value="Sortering: A">
-    <label for="mark">Grote markering rechts (letter of cijfer)</label><input id="mark" type="text" maxlength="3" value="A">
+    <label for="productCode">Productcode</label><input id="productCode" type="text" value="22602880">
+    <label for="description">Productomschrijving</label><input id="description" type="text" value="5x20.000 vouwplakken">
+    <label for="mark">Sorteermarkering (letter of cijfer)</label><input id="mark" type="text" maxlength="3" value="A">
     <label for="markStyle">Vorm van de markering</label><select id="markStyle"><option value="circle">Cirkel</option><option value="square">Vierkant</option><option value="plain">Geen kader</option></select>
     <p class="small">Bijvoorbeeld A / B / C of 1 / 2 / 3. Gebruik de interne codering die binnen uw productie wordt gehanteerd.</p>
     <label for="quantity">Aantal</label><input id="quantity" type="text" value="450 Stuks">
@@ -93,12 +95,17 @@ button { border:0; border-radius:8px; padding:10px 12px; cursor:pointer; font-we
     <hr style="border:0;border-top:1px solid #e2e6ea;margin:16px 0">
     <h2>Instellingen van het papier</h2>
     <div class="row">
-      <div><label for="top">Bovenmarge (mm)</label><input id="top" type="number" min="0" max="20" step="0.5" value="7"><div class="small">Bij een bovenmarge van 7 mm en vier rijen etiketten van 70 mm is de ondermarge automatisch 10 mm.</div></div>
-      <div><label for="xoffset">Extra verschuiving vanaf links (mm)</label><input id="xoffset" type="number" min="0" max="10" step="0.5" value="0"></div>
+      <div><label for="top">Bovenmarge (mm)</label><input id="top" type="number" min="0" max="20" step="0.5" value="7"></div>
+      <div><label for="bottom">Ondermarge (mm)</label><input id="bottom" type="number" min="0" max="25" step="0.5" value="10"></div>
     </div>
+    <div class="row">
+      <div><label for="xoffset">Horizontale verschuiving (mm)</label><input id="xoffset" type="number" min="-10" max="10" step="0.5" value="0"></div>
+      <div><label for="rotatePrint">Afdrukrichting</label><select id="rotatePrint"><option value="180" selected>180° gedraaid</option><option value="0">Normaal</option></select></div>
+    </div>
+    <div class="small">Etiketformaat: 106 × 69 mm. Geen linker- of rechtermarge. Twee etiketten beslaan samen 212 mm; A4 is 210 mm breed. Controleer daarom eerst met een proefafdruk of een kleine horizontale schaalcorrectie nodig is.</div>
     <label for="titleSize">Lettergrootte van de productnaam (pt)</label><input id="titleSize" type="range" min="12" max="14" step="1" value="13"><div class="small"><span id="titleSizeVal">13</span> pt · vet</div>
     <label for="bodySize">Lettergrootte van de overige regels (pt)</label><input id="bodySize" type="range" min="10" max="11" step="0.5" value="10.5"><div class="small"><span id="bodySizeVal">10.5</span> pt</div>
-    <label for="border">Rand van het etiket</label><select id="border"><option value="1px solid #555">Dun</option><option value="1.5px solid #111">Gemiddeld</option><option value="2px solid #111">Dik</option><option value="none">Geen kader</option></select>
+    <label for="border">Dikte van de kaders</label><select id="border"><option value="1px solid #555">Dun</option><option value="1.5px solid #111">Gemiddeld</option><option value="2px solid #111">Dik</option><option value="none">Geen kader</option></select>
     <button class="primary" id="print">Afdrukken / opslaan als PDF</button>
     <button class="secondary" id="reset" style="width:100%;margin-top:8px">Standaardwaarden herstellen</button>
     <p class="small">Dit is één zelfstandig HTML-bestand. Sla het op uw computer op en open het met Chrome, Edge of Firefox. Installatie en internetverbinding zijn niet nodig.</p>
@@ -117,16 +124,24 @@ button { border:0; border-radius:8px; padding:10px 12px; cursor:pointer; font-we
   </section>
 </div>
 <script>
-const ids=['product','description','grade','quantity','company','street','postcode','city','mark'];
+const ids=['product','productCode','description','quantity','company','street','postcode','city','mark'];
 const labelsEl=document.getElementById('labels');
 let selected=0;
 function formData(){return Object.fromEntries(ids.map(id=>[id,document.getElementById(id).value]));}
 function createLabel(i){
   const el=document.createElement('div'); el.className='label'; el.dataset.index=i;
   const d=formData();
-  [['product','title'],['description','desc'],['grade','grade'],['quantity','qty'],['company','company'],['street','street'],['postcode','postcode'],['city','city'],['mark','mark']].forEach(([key,cls])=>{
+  const titleRow=document.createElement('div'); titleRow.className='title-row';
+  [['product','title'],['productCode','product-code']].forEach(([key,cls])=>{
+    const line=document.createElement('div'); line.className='line '+cls; line.contentEditable='true'; line.spellcheck=false; line.textContent=d[key]; line.dataset.field=key;
+    line.addEventListener('focus',()=>selectLabel(i));
+    line.addEventListener('input',()=>{ if(i===selected) document.getElementById(key).value=line.innerText; });
+    titleRow.appendChild(line);
+  });
+  el.appendChild(titleRow);
+  [['description','desc'],['quantity','qty'],['company','company'],['street','street'],['postcode','postcode'],['city','city'],['mark','mark']].forEach(([key,cls])=>{
     const line=document.createElement('div'); line.className='line '+cls; line.contentEditable='true'; line.spellcheck=false; line.textContent=d[key];
-    if(key==='mark') { line.setAttribute('aria-label','Grote markering'); line.style.width='19mm'; line.style.height='19mm'; line.style.minHeight='19mm'; }
+    if(key==='mark') { line.setAttribute('aria-label','Sorteermarkering'); line.style.width='19mm'; line.style.height='19mm'; line.style.minHeight='19mm'; }
     line.dataset.field=key;
     line.addEventListener('focus',()=>selectLabel(i));
     line.addEventListener('input',()=>{ if(i===selected) document.getElementById(key).value=line.innerText; });
@@ -157,22 +172,23 @@ function applyMarkStyle(){
  });
 }
 function applySettings(){
- const top=Number(document.getElementById('top').value)||0, xo=Number(document.getElementById('xoffset').value)||0;
- document.documentElement.style.setProperty('--top',top+'mm');document.documentElement.style.setProperty('--x-offset',xo+'mm');
+ const top=Number(document.getElementById('top').value)||0, bottom=Number(document.getElementById('bottom').value)||0, xo=Number(document.getElementById('xoffset').value)||0;
+ document.documentElement.style.setProperty('--top',top+'mm');document.documentElement.style.setProperty('--bottom',bottom+'mm');document.documentElement.style.setProperty('--x-offset',xo+'mm');
+ labelsEl.classList.toggle('rotate-print',document.getElementById('rotatePrint').value==='180');
  const ts=document.getElementById('titleSize').value, bs=document.getElementById('bodySize').value;
  document.getElementById('titleSizeVal').textContent=ts;document.getElementById('bodySizeVal').textContent=bs;
  document.querySelectorAll('.label').forEach(el=>{
   el.querySelector('.title').style.fontSize=ts+'pt';
-  ['.desc','.grade','.qty','.company','.street','.postcode','.city'].forEach(sel=>{const node=el.querySelector(sel); if(node) node.style.fontSize=bs+'pt';});
+  ['.desc','.qty','.company','.street','.postcode','.city'].forEach(sel=>{const node=el.querySelector(sel); if(node) node.style.fontSize=bs+'pt';});
   el.style.border=document.getElementById('border').value;
  });
 }
 ids.forEach(id=>document.getElementById(id).addEventListener('input',updateAll));
-['top','xoffset','titleSize','bodySize','border','markStyle'].forEach(id=>document.getElementById(id).addEventListener('input',applySettings));
+['top','bottom','xoffset','rotatePrint','titleSize','bodySize','border','markStyle'].forEach(id=>document.getElementById(id).addEventListener('input',applySettings));
 document.getElementById('editAll').addEventListener('click',updateAll);
 document.getElementById('duplicate').addEventListener('click',()=>{const d=formData(), el=document.querySelector('.label[data-index="'+selected+'"]');ids.forEach(id=>{el.querySelector('[data-field="'+id+'"]').textContent=d[id];});});
 document.getElementById('print').addEventListener('click',()=>window.print());
-document.getElementById('reset').addEventListener('click',()=>{document.getElementById('product').value='Biologische Herbal Chai Spice';document.getElementById('description').value='5x20.000 vouwplakken';document.getElementById('grade').value='Sortering: A';document.getElementById('mark').value='A';document.getElementById('markStyle').value='circle';document.getElementById('quantity').value='450 Stuks';document.getElementById('company').value='Drukkerij Coenradi';document.getElementById('street').value='Simon Stevinstraat 12';document.getElementById('postcode').value='8013 NB';document.getElementById('city').value='Zwolle';document.getElementById('top').value=7;document.getElementById('xoffset').value=0;document.getElementById('titleSize').value=13;document.getElementById('bodySize').value=10.5;document.getElementById('border').value='1px solid #555';build();});
+document.getElementById('reset').addEventListener('click',()=>{document.getElementById('product').value='Biologische Herbal Chai Spice';document.getElementById('productCode').value='22602880';document.getElementById('description').value='5x20.000 vouwplakken';document.getElementById('mark').value='A';document.getElementById('markStyle').value='circle';document.getElementById('quantity').value='450 Stuks';document.getElementById('company').value='Drukkerij Coenradi';document.getElementById('street').value='Simon Stevinstraat 12';document.getElementById('postcode').value='8013 NB';document.getElementById('city').value='Zwolle';document.getElementById('top').value=7;document.getElementById('bottom').value=10;document.getElementById('xoffset').value=0;document.getElementById('rotatePrint').value='180';document.getElementById('titleSize').value=13;document.getElementById('bodySize').value=10.5;document.getElementById('border').value='1px solid #555';build();});
 build();
 
 document.addEventListener('change', function(e){
