@@ -1,211 +1,659 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Zelfstandige etikettenmaker voor acht etiketten op A4. Werkt lokaal in de browser, zonder installatie of internetverbinding.">
 <title>Etikettenmaker</title>
+
 <style>
-:root { --label-w:106mm; --label-h:69mm; --page-w:210mm; --page-h:297mm; --top:7mm; --bottom:10mm; --x-offset:0mm; --frame-width:1px; }
-* { box-sizing:border-box; }
-body { margin:0; font:15px/1.4 Arial, Helvetica, sans-serif; background:#f2f4f7; color:#20242a; }
-header { padding:16px; background:#183b56; color:white; }
-header h1 { font-size:20px; margin:0 0 5px; }
-header p { margin:0; opacity:.9; font-size:13px; }
-.app { display:grid; grid-template-columns:minmax(280px,360px) minmax(0,1fr); gap:16px; padding:16px; align-items:start; }
-.panel { background:white; border-radius:12px; padding:14px; box-shadow:0 2px 10px #0000000d; }
-.panel h2 { font-size:16px; margin:0 0 12px; }
-label { display:block; font-size:13px; font-weight:650; margin:11px 0 5px; }
-input, textarea, select, button { font:inherit; }
-input[type=text], input[type=number], textarea, select { width:100%; border:1px solid #c8d0d8; border-radius:7px; padding:9px; background:white; color:#20242a; }
-textarea { min-height:60px; resize:vertical; }
-input[type=range] { width:100%; }
-.row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-button { border:0; border-radius:8px; padding:10px 12px; cursor:pointer; font-weight:650; }
-.primary { background:#176b87; color:white; width:100%; margin-top:12px; }
-.secondary { background:#e8eef2; color:#183b56; }
-.small { font-size:12px; color:#5e6974; }
-.toolbar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
-.preview-wrap { overflow:auto; padding:12px; background:#dfe4e8; border-radius:10px; }
-.sheet { width:210mm; height:297mm; background:white; position:relative; margin:0 auto; box-shadow:0 2px 12px #0003; overflow:hidden; }
-.labels { position:absolute; top:var(--top); left:var(--x-offset); width:212mm; height:calc(297mm - var(--top) - var(--bottom)); display:grid; grid-template-columns:repeat(2,106mm); grid-template-rows:repeat(4,69mm); row-gap:calc((297mm - var(--top) - var(--bottom) - 276mm) / 3); column-gap:0; transform-origin:center center; }
-.label { box-sizing:border-box; width:106mm; height:69mm; min-width:106mm; min-height:69mm; border:var(--frame-width) solid #555; position:relative; padding:4mm 5mm; overflow:hidden; background:#fff; color:#111; font-family:Arial, Helvetica, sans-serif; }
-.label.selected { outline:2px solid #1683a5; outline-offset:-3px; }
-.label [contenteditable=true]:focus { background:transparent !important; }
-.label .line { display:block; width:68%; min-height:1em; border:0; padding:0; margin:0; outline:none; white-space:pre-wrap; overflow-wrap:anywhere; background:transparent; color:inherit; font-family:Arial, Helvetica, sans-serif; text-align:left; }
-.label .title-row { width:100%; display:flex; align-items:stretch; border:1px solid #111; margin:0 0 3mm; min-height:12mm; }
-.label .title { flex:1; width:auto; font-weight:700; font-size:13pt; text-align:left; padding:1.5mm 2mm; min-height:10mm; }
-.label .product-code { width:25mm; min-width:25mm; border-left:1px solid #111; font-size:10pt; font-weight:700; text-align:right; padding:1.5mm 1.5mm; display:flex; align-items:center; justify-content:flex-end; }
-.label .desc { font-size:10.5pt; font-weight:400; margin:0 0 2mm; }
-.label .qty { font-size:10.5pt; margin:0 0 3mm; }
-.label .company { font-size:10.5pt; margin-top:3mm; }
-.label .street { font-size:8pt; margin-top:1mm; }
-.label .postcode { font-size:8pt; margin:0; line-height:1.25; }
-.label .city { font-size:8pt; margin:0; padding-bottom:1mm; line-height:1.25; }
-.label .mark { position:absolute; right:4mm; top:50%; transform:translateY(-50%); width:19mm; height:19mm; min-height:19mm; display:flex; align-items:center; justify-content:center; border:1.2mm solid #111; border-radius:50%; font-size:28pt; font-weight:800; text-align:center; line-height:1; overflow:hidden; padding:0; background:white; color:#111; }
-.label .mark:focus { background:transparent; }
-.label .line:focus { background:transparent; }
-.label .line[contenteditable=true]:empty:before { content:"Klik om tekst toe te voegen"; color:#9aa2aa; }
-.label .mark.shape-square { border-radius:0 !important; }
-.label .mark.shape-circle { border-radius:50% !important; }
-.label .mark.shape-plain { border:0 !important; border-radius:0 !important; }
-@media(max-width:850px) { .app { grid-template-columns:1fr; } .preview-wrap { padding:8px; } .sheet { transform-origin:top left; } }
-@media print {
-  @page { size:A4 portrait; margin:0; }
-  body { background:white; }
-  header,.controls,.toolbar,.panel:not(.preview-panel) { display:none!important; }
-  .app { display:block; padding:0; margin:0; }
-  .preview-panel { padding:0; box-shadow:none; border-radius:0; }
-  /* Print only the A4 sheet: hide preview heading and the helper text below it. */
-  .preview-panel > h2,
-  .preview-panel > .small { display:none !important; }
-  .preview-wrap { padding:0; background:white; overflow:visible; }
-  .sheet { width:210mm; height:297mm; margin:0; box-shadow:none; overflow:hidden; transform:none !important; }
-  .labels { left:var(--x-offset) !important; top:var(--top) !important; width:212mm; height:calc(297mm - var(--top) - var(--bottom)); grid-template-columns:repeat(2,106mm); grid-template-rows:repeat(4,69mm); row-gap:calc((297mm - var(--top) - var(--bottom) - 276mm) / 3); }
-  .label { width:106mm; height:69mm; min-width:106mm; min-height:69mm; }
-  .labels.rotate-print { transform:rotate(180deg); }
-  .label.selected { outline:none; }
-  .label .line:focus { background:transparent; }
-  .label .line[contenteditable=true]:empty:before { content:none !important; display:none !important; }
-  /* Toon de invoerhint voor lege optionele velden niet op de afdruk. */
-  .label .line[contenteditable=true]:empty:before { content:none !important; display:none !important; }
+:root {
+  --top: 7mm;
+  --bottom: 10mm;
+  --x-offset: 0mm;
+  --frame: 1px;
 }
-@media(max-width:500px) {
-  .sheet { transform:scale(.48); transform-origin:top left; margin-bottom:-154mm; }
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #f1f3f5;
+  color: #222;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+header {
+  background: #183b56;
+  color: white;
+  padding: 16px;
+}
+
+header h1 { margin: 0 0 5px; font-size: 21px; }
+header p { margin: 0; font-size: 13px; }
+
+.app {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px;
+  align-items: start;
+}
+
+.panel {
+  background: white;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 2px 10px #00000010;
+}
+
+.panel h2 { font-size: 16px; margin: 0 0 12px; }
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  margin: 11px 0 5px;
+}
+
+input, select, button { font: inherit; }
+
+input[type="text"], input[type="number"], select {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #c8d0d8;
+  border-radius: 6px;
+  background: white;
+}
+
+input[type="range"] { width: 100%; }
+
+button {
+  border: 0;
+  border-radius: 7px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.primary {
+  width: 100%;
+  background: #176b87;
+  color: white;
+  margin-top: 14px;
+}
+
+.secondary { background: #e8eef2; color: #183b56; }
+
+.small {
+  font-size: 12px;
+  color: #68737d;
+  line-height: 1.5;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.preview-wrap {
+  overflow: auto;
+  padding: 12px;
+  background: #dfe4e8;
+  border-radius: 8px;
+}
+
+.sheet {
+  width: 210mm;
+  height: 297mm;
+  background: white;
+  position: relative;
+  margin: auto;
+  overflow: hidden;
+  box-shadow: 0 2px 12px #0003;
+}
+
+.labels {
+  position: absolute;
+  top: var(--top);
+  left: var(--x-offset);
+  width: 210mm;
+  height: calc(297mm - var(--top) - var(--bottom));
+  display: grid;
+  grid-template-columns: repeat(2, 105mm);
+  grid-template-rows: repeat(4, 69mm);
+  row-gap: calc((297mm - var(--top) - var(--bottom) - 276mm) / 3);
+  column-gap: 0;
+  transform-origin: center center;
+}
+
+.label {
+  width: 105mm;
+  height: 69mm;
+  position: relative;
+  overflow: hidden;
+  padding: 4mm 5mm;
+  border: var(--frame) solid #555;
+  background: white;
+  color: black;
+}
+
+.label.selected {
+  outline: 2px solid #1683a5;
+  outline-offset: -3px;
+}
+
+.title-row {
+  width: 100%;
+  min-height: 12mm;
+  display: flex;
+  border: 1px solid #111;
+  margin-bottom: 3mm;
+}
+
+.editable {
+  outline: none;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  cursor: text;
+}
+
+.title {
+  flex: 1;
+  font-size: 13pt;
+  font-weight: bold;
+  padding: 1.5mm 2mm;
+  min-width: 0;
+}
+
+.product-code {
+  width: 25mm;
+  min-width: 25mm;
+  border-left: 1px solid #111;
+  font-size: 10pt;
+  font-weight: bold;
+  padding: 1.5mm;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.desc {
+  font-size: 10.5pt;
+  margin-bottom: 2mm;
+  width: 70%;
+}
+
+.qty {
+  font-size: 10.5pt;
+  margin-bottom: 3mm;
+  width: 70%;
+}
+
+.company {
+  font-size: 10.5pt;
+  margin-top: 3mm;
+  width: 70%;
+}
+
+.street, .postcode, .city {
+  font-size: 8pt;
+  width: 70%;
+  line-height: 1.25;
+}
+
+.street { margin-top: 1mm; }
+.postcode, .city { margin: 0; }
+
+.mark {
+  position: absolute;
+  right: 4mm;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 19mm;
+  height: 19mm;
+  border: 1.2mm solid black;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28pt;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  overflow: hidden;
+  padding: 0;
+  background: white;
+  color: black;
+}
+
+.mark.square { border-radius: 0; }
+.mark.plain { border: none; border-radius: 0; }
+
+@media(max-width: 850px) {
+  .app { grid-template-columns: 1fr; }
+  .preview-wrap { padding: 8px; }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html, body {
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .sheet, .sheet * {
+    visibility: visible !important;
+  }
+
+  .sheet {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+    transform: none !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  .labels {
+    position: absolute !important;
+    top: var(--top) !important;
+    left: var(--x-offset) !important;
+    width: 210mm !important;
+    height: calc(297mm - var(--top) - var(--bottom)) !important;
+    grid-template-columns: repeat(2, 105mm) !important;
+    grid-template-rows: repeat(4, 69mm) !important;
+    row-gap: calc((297mm - var(--top) - var(--bottom) - 276mm) / 3) !important;
+    column-gap: 0 !important;
+  }
+
+  .labels.rotate-print {
+    transform: rotate(180deg) !important;
+  }
+
+  .label {
+    width: 105mm !important;
+    height: 69mm !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .label.selected { outline: none !important; }
+
+  .editable:empty:before { content: none !important; }
 }
 </style>
 </head>
+
 <body>
+
 <header>
   <h1>Etikettenmaker</h1>
-  <p>Bewerk de etiketten via de invoervelden of rechtstreeks in het voorbeeld.</p>
+  <p>Bewerk uw productetiketten en druk ze af op A4.</p>
 </header>
+
 <div class="app">
-  <section class="panel controls">
-    <h2>Gegevens van de etiketten</h2>
-    <div class="small">Wijzigingen in de invoervelden worden toegepast op alle 8 etiketten. Klik op tekst in het voorbeeld om één etiket afzonderlijk aan te passen.</div>
-    <label for="product">Productnaam</label><input id="product" type="text" value="Biologische Herbal Chai Spice">
-    <label for="productCode">Productcode</label><input id="productCode" type="text" value="22602880">
-    <label for="description">Productomschrijving</label><input id="description" type="text" value="5x20.000 vouwplakken">
-    <label for="mark">Sorteermarkering (letter of cijfer)</label><input id="mark" type="text" maxlength="3" value="A">
-    <label for="markStyle">Vorm van de markering</label><select id="markStyle"><option value="circle">Cirkel</option><option value="square">Vierkant</option><option value="plain">Geen kader</option></select>
-    <p class="small">Bijvoorbeeld A / B / C of 1 / 2 / 3. Gebruik de interne codering die binnen uw productie wordt gehanteerd.</p>
-    <label for="quantity">Aantal</label><input id="quantity" type="text" value="450 Stuks">
-    <label for="company">Bedrijfsnaam</label><input id="company" type="text" value="Drukkerij Coenradi">
-    <label for="street">Straat en huisnummer</label><input id="street" type="text" value="Simon Stevinstraat 12">
-    <label for="postcode">Postcode</label><input id="postcode" type="text" value="8013 NB">
-    <label for="city">Plaats</label><input id="city" type="text" value="Zwolle">
-    <hr style="border:0;border-top:1px solid #e2e6ea;margin:16px 0">
-    <h2>Instellingen van het papier</h2>
-    <div class="row">
-      <div><label for="top">Bovenmarge (mm)</label><input id="top" type="number" min="0" max="20" step="0.5" value="7"></div>
-      <div><label for="bottom">Ondermarge (mm)</label><input id="bottom" type="number" min="0" max="25" step="0.5" value="10"></div>
-    </div>
-    <div class="row">
-      <div><label for="xoffset">Horizontale verschuiving (mm)</label><input id="xoffset" type="number" min="-10" max="10" step="0.5" value="0"></div>
-      <div><label for="rotatePrint">Afdrukrichting</label><select id="rotatePrint"><option value="180" selected>180° gedraaid</option><option value="0">Normaal</option></select></div>
-    </div>
-    <div class="small">Etiketformaat: 106 × 69 mm. Geen linker- of rechtermarge. Twee etiketten beslaan samen 212 mm; A4 is 210 mm breed. Controleer daarom eerst met een proefafdruk of een kleine horizontale schaalcorrectie nodig is.</div>
-    <label for="titleSize">Lettergrootte van de productnaam (pt)</label><input id="titleSize" type="range" min="12" max="14" step="1" value="13"><div class="small"><span id="titleSizeVal">13</span> pt · vet</div>
-    <label for="bodySize">Lettergrootte van de overige regels (pt)</label><input id="bodySize" type="range" min="10" max="11" step="0.5" value="10.5"><div class="small"><span id="bodySizeVal">10.5</span> pt</div>
-    <label for="border">Dikte van de kaders</label><select id="border"><option value="1px solid #555">Dun</option><option value="1.5px solid #111">Gemiddeld</option><option value="2px solid #111">Dik</option><option value="none">Geen kader</option></select>
-    <button class="primary" id="print">Afdrukken / opslaan als PDF</button>
-    <button class="secondary" id="reset" style="width:100%;margin-top:8px">Standaardwaarden herstellen</button>
-    <p class="small">Dit is één zelfstandig HTML-bestand. Sla het op uw computer op en open het met Chrome, Edge of Firefox. Installatie en internetverbinding zijn niet nodig.</p>
-    <p class="small">Belangrijk: kies vóór het afdrukken schaal 100% / Werkelijke grootte en schakel 'Aanpassen aan pagina' uit. Maak eerst een proefafdruk op gewoon papier.</p>
-  </section>
-  <section class="panel preview-panel">
-    <h2>Voorbeeld — A4</h2>
-    <div class="toolbar">
-      <button class="secondary" id="editAll">Alle etiketten bijwerken</button>
-      <button class="secondary" id="duplicate">Standaardtekst op geselecteerd etiket herstellen</button>
-    </div>
-    <div class="preview-wrap">
-      <div class="sheet" id="sheet"><div class="labels" id="labels"></div></div>
-    </div>
-    <p class="small">Нажми на любой текст и отредактируй его прямо на макете. Для печати нажми «Afdrukken / opslaan als PDF».</p>
-  </section>
+
+<section class="panel controls">
+
+<h2>Productgegevens</h2>
+
+<p class="small">
+Wijzig de invoervelden om alle etiketten bij te werken.
+U kunt ook rechtstreeks tekst in het voorbeeld aanpassen.
+</p>
+
+<label>Productnaam</label>
+<input id="product" type="text" value="Biologische Herbal Chai Spice">
+
+<label>Productcode</label>
+<input id="productCode" type="text" value="22602880">
+
+<label>Productomschrijving</label>
+<input id="description" type="text" value="5x20.000 vouwplakken">
+
+<label>Sorteermarkering</label>
+<input id="mark" type="text" maxlength="3" value="A">
+
+<label>Vorm van de markering</label>
+<select id="markStyle">
+  <option value="circle">Cirkel</option>
+  <option value="square">Vierkant</option>
+  <option value="plain">Geen kader</option>
+</select>
+
+<label>Aantal</label>
+<input id="quantity" type="text" value="450 Stuks">
+
+<label>Bedrijfsnaam / klant</label>
+<input id="company" type="text" value="Drukkerij Coenradi">
+
+<label>Straat en huisnummer</label>
+<input id="street" type="text" value="Simon Stevinstraat 12">
+
+<label>Postcode</label>
+<input id="postcode" type="text" value="8013 NB">
+
+<label>Plaats</label>
+<input id="city" type="text" value="Zwolle">
+
+<hr>
+
+<h2>Papierinstellingen</h2>
+
+<div class="row">
+  <div>
+    <label>Bovenmarge (mm)</label>
+    <input id="top" type="number" value="7" min="0" max="20" step="0.5">
+  </div>
+  <div>
+    <label>Ondermarge (mm)</label>
+    <input id="bottom" type="number" value="10" min="0" max="25" step="0.5">
+  </div>
 </div>
+
+<label>Horizontale verschuiving (mm)</label>
+<input id="xoffset" type="number" value="0" min="-10" max="10" step="0.5">
+
+<label>Afdrukrichting</label>
+<select id="rotatePrint">
+  <option value="180">180° gedraaid</option>
+  <option value="0">Normaal</option>
+</select>
+
+<label>Lettergrootte productnaam (pt)</label>
+<input id="titleSize" type="range" min="12" max="14" value="13">
+<div class="small" id="titleSizeVal">13 pt</div>
+
+<label>Lettergrootte overige tekst (pt)</label>
+<input id="bodySize" type="range" min="10" max="11" step="0.5" value="10.5">
+<div class="small" id="bodySizeVal">10.5 pt</div>
+
+<label>Dikte van de kaders</label>
+<select id="border">
+  <option value="1px solid #555">Dun</option>
+  <option value="1.5px solid #111">Gemiddeld</option>
+  <option value="2px solid #111">Dik</option>
+  <option value="none">Geen kader</option>
+</select>
+
+<button class="primary" id="print">
+  Afdrukken / opslaan als PDF
+</button>
+
+<button class="secondary" id="reset" style="width:100%;margin-top:8px">
+  Standaardwaarden herstellen
+</button>
+
+<p class="small">
+Etiketformaat: 105 × 69 mm.
+A4-formaat: 210 × 297 mm.
+Geen linker- of rechtermarge.
+Maak eerst een proefafdruk op gewoon papier.
+</p>
+
+<p class="small">
+Kies bij het afdrukken schaal 100% / Werkelijke grootte.
+Schakel 'Aanpassen aan pagina' uit.
+</p>
+
+</section>
+
+<section class="panel preview-panel">
+
+<h2>Voorbeeld — A4</h2>
+
+<div class="toolbar">
+  <button class="secondary" id="updateAll">
+    Alle etiketten bijwerken
+  </button>
+</div>
+
+<div class="preview-wrap">
+  <div class="sheet" id="sheet">
+    <div class="labels" id="labels"></div>
+  </div>
+</div>
+
+<p class="small">
+Klik op een tekst om deze rechtstreeks aan te passen.
+</p>
+
+</section>
+</div>
+
 <script>
-const ids=['product','productCode','description','quantity','company','street','postcode','city','mark'];
-const labelsEl=document.getElementById('labels');
-let selected=0;
-function formData(){return Object.fromEntries(ids.map(id=>[id,document.getElementById(id).value]));}
-function createLabel(i){
-  const el=document.createElement('div'); el.className='label'; el.dataset.index=i;
-  const d=formData();
-  const titleRow=document.createElement('div'); titleRow.className='title-row';
-  [['product','title'],['productCode','product-code']].forEach(([key,cls])=>{
-    const line=document.createElement('div'); line.className='line '+cls; line.contentEditable='true'; line.spellcheck=false; line.textContent=d[key]; line.dataset.field=key;
-    line.addEventListener('focus',()=>selectLabel(i));
-    line.addEventListener('input',()=>{ if(i===selected) document.getElementById(key).value=line.innerText; });
-    titleRow.appendChild(line);
+const fields = [
+  'product',
+  'productCode',
+  'description',
+  'quantity',
+  'company',
+  'street',
+  'postcode',
+  'city',
+  'mark'
+];
+
+const labels = document.getElementById('labels');
+
+function getData() {
+  const data = {};
+  fields.forEach(id => {
+    data[id] = document.getElementById(id).value;
   });
-  el.appendChild(titleRow);
-  [['description','desc'],['quantity','qty'],['company','company'],['street','street'],['postcode','postcode'],['city','city'],['mark','mark']].forEach(([key,cls])=>{
-    const line=document.createElement('div'); line.className='line '+cls; line.contentEditable='true'; line.spellcheck=false; line.textContent=d[key];
-    if(key==='mark') { line.setAttribute('aria-label','Sorteermarkering'); line.style.width='19mm'; line.style.height='19mm'; line.style.minHeight='19mm'; }
-    line.dataset.field=key;
-    line.addEventListener('focus',()=>selectLabel(i));
-    line.addEventListener('input',()=>{ if(i===selected) document.getElementById(key).value=line.innerText; });
-    el.appendChild(line);
+  return data;
+}
+
+function selectLabel(el) {
+  document.querySelectorAll('.label').forEach(item => {
+    item.classList.remove('selected');
   });
-  el.addEventListener('click',()=>selectLabel(i));
+  el.classList.add('selected');
+}
+
+function addEditable(parent, field, className, value, labelElement) {
+  const el = document.createElement('div');
+  el.className = 'editable ' + className;
+  el.contentEditable = 'true';
+  el.spellcheck = false;
+  el.dataset.field = field;
+  el.textContent = value;
+
+  el.addEventListener('focus', () => {
+    selectLabel(labelElement);
+  });
+
+  el.addEventListener('input', () => {
+    if (document.querySelector('.label.selected') === labelElement) {
+      document.getElementById(field).value = el.innerText;
+    }
+  });
+
+  parent.appendChild(el);
   return el;
 }
-function selectLabel(i){selected=i;document.querySelectorAll('.label').forEach((e,j)=>e.classList.toggle('selected',j===i));}
-function build(){labelsEl.innerHTML='';for(let i=0;i<8;i++)labelsEl.appendChild(createLabel(i));selectLabel(0);applySettings();}
-function updateAll(){const d=formData();document.querySelectorAll('.label').forEach(el=>{ids.forEach(id=>{const target=el.querySelector('[data-field="'+id+'"]'); if(target) target.textContent=d[id];});});applyMarkStyle();}
-function applyMarkStyle(){
- const select=document.getElementById('markStyle');
- const style=select ? select.value : 'circle';
- document.querySelectorAll('.label .mark').forEach(mark=>{
-   mark.classList.remove('shape-circle','shape-square','shape-plain');
-   mark.classList.add('shape-'+style);
-   // Inline styles win over the generic .line/.mark rules.
-   mark.style.boxSizing='border-box';
-   mark.style.width='19mm';
-   mark.style.height='19mm';
-   mark.style.minHeight='19mm';
-   mark.style.display='flex';
-   mark.style.alignItems='center';
-   mark.style.justifyContent='center';
-   mark.style.border = style === 'plain' ? 'none' : '1.2pt solid #111';
-   mark.style.borderRadius = style === 'circle' ? '50%' : '0';
- });
-}
-function applySettings(){
- const top=Number(document.getElementById('top').value)||0, bottom=Number(document.getElementById('bottom').value)||0, xo=Number(document.getElementById('xoffset').value)||0;
- document.documentElement.style.setProperty('--top',top+'mm');document.documentElement.style.setProperty('--bottom',bottom+'mm');document.documentElement.style.setProperty('--x-offset',xo+'mm');
- labelsEl.classList.toggle('rotate-print',document.getElementById('rotatePrint').value==='180');
- const ts=document.getElementById('titleSize').value, bs=document.getElementById('bodySize').value;
- document.getElementById('titleSizeVal').textContent=ts;document.getElementById('bodySizeVal').textContent=bs;
- document.querySelectorAll('.label').forEach(el=>{
-  el.querySelector('.title').style.fontSize=ts+'pt';
-  ['.desc','.qty','.company','.street','.postcode','.city'].forEach(sel=>{const node=el.querySelector(sel); if(node) node.style.fontSize=bs+'pt';});
-  el.style.border=document.getElementById('border').value;
- });
-}
-ids.forEach(id=>document.getElementById(id).addEventListener('input',updateAll));
-['top','bottom','xoffset','rotatePrint','titleSize','bodySize','border','markStyle'].forEach(id=>document.getElementById(id).addEventListener('input',applySettings));
-document.getElementById('editAll').addEventListener('click',updateAll);
-document.getElementById('duplicate').addEventListener('click',()=>{const d=formData(), el=document.querySelector('.label[data-index="'+selected+'"]');ids.forEach(id=>{el.querySelector('[data-field="'+id+'"]').textContent=d[id];});});
-document.getElementById('print').addEventListener('click',()=>window.print());
-document.getElementById('reset').addEventListener('click',()=>{document.getElementById('product').value='Biologische Herbal Chai Spice';document.getElementById('productCode').value='22602880';document.getElementById('description').value='5x20.000 vouwplakken';document.getElementById('mark').value='A';document.getElementById('markStyle').value='circle';document.getElementById('quantity').value='450 Stuks';document.getElementById('company').value='Drukkerij Coenradi';document.getElementById('street').value='Simon Stevinstraat 12';document.getElementById('postcode').value='8013 NB';document.getElementById('city').value='Zwolle';document.getElementById('top').value=7;document.getElementById('bottom').value=10;document.getElementById('xoffset').value=0;document.getElementById('rotatePrint').value='180';document.getElementById('titleSize').value=13;document.getElementById('bodySize').value=10.5;document.getElementById('border').value='1px solid #555';build();});
-build();
 
-document.addEventListener('change', function(e){
- if(e.target && e.target.id === 'markStyle') applyMarkStyle();
-});
-document.addEventListener('input', function(e){
- if(e.target && e.target.id === 'markStyle') applyMarkStyle();
+function createLabel(data, index) {
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.dataset.index = index;
+
+  label.addEventListener('click', () => selectLabel(label));
+
+  const titleRow = document.createElement('div');
+  titleRow.className = 'title-row';
+
+  addEditable(titleRow, 'product', 'title', data.product, label);
+  addEditable(titleRow, 'productCode', 'product-code', data.productCode, label);
+
+  label.appendChild(titleRow);
+
+  addEditable(label, 'description', 'desc', data.description, label);
+  addEditable(label, 'quantity', 'qty', data.quantity, label);
+  addEditable(label, 'company', 'company', data.company, label);
+  addEditable(label, 'street', 'street', data.street, label);
+  addEditable(label, 'postcode', 'postcode', data.postcode, label);
+  addEditable(label, 'city', 'city', data.city, label);
+
+  const mark = addEditable(label, 'mark', 'mark', data.mark, label);
+
+  label.appendChild(mark);
+  return label;
+}
+
+function buildLabels() {
+  labels.innerHTML = '';
+  const data = getData();
+
+  for (let i = 0; i < 8; i++) {
+    labels.appendChild(createLabel(data, i));
+  }
+
+  if (labels.firstElementChild) {
+    selectLabel(labels.firstElementChild);
+  }
+
+  applySettings();
+}
+
+function updateAllLabels() {
+  const data = getData();
+
+  document.querySelectorAll('.label').forEach(label => {
+    fields.forEach(field => {
+      const element = label.querySelector('[data-field="' + field + '"]');
+      if (element) element.textContent = data[field];
+    });
+  });
+
+  applySettings();
+}
+
+function applySettings() {
+  const top = Number(document.getElementById('top').value) || 0;
+  const bottom = Number(document.getElementById('bottom').value) || 0;
+  const x = Number(document.getElementById('xoffset').value) || 0;
+
+  document.documentElement.style.setProperty('--top', top + 'mm');
+  document.documentElement.style.setProperty('--bottom', bottom + 'mm');
+  document.documentElement.style.setProperty('--x-offset', x + 'mm');
+
+  labels.classList.toggle(
+    'rotate-print',
+    document.getElementById('rotatePrint').value === '180'
+  );
+
+  const titleSize = document.getElementById('titleSize').value;
+  const bodySize = document.getElementById('bodySize').value;
+
+  document.getElementById('titleSizeVal').textContent = titleSize + ' pt';
+  document.getElementById('bodySizeVal').textContent = bodySize + ' pt';
+
+  document.querySelectorAll('.label').forEach(label => {
+    const title = label.querySelector('.title');
+    if (title) title.style.fontSize = titleSize + 'pt';
+
+    [
+      '.desc', '.qty', '.company',
+      '.street', '.postcode', '.city'
+    ].forEach(selector => {
+      const element = label.querySelector(selector);
+      if (element) element.style.fontSize = bodySize + 'pt';
+    });
+
+    label.style.border = document.getElementById('border').value;
+
+    const mark = label.querySelector('.mark');
+    const style = document.getElementById('markStyle').value;
+
+    mark.classList.toggle('square', style === 'square');
+    mark.classList.toggle('plain', style === 'plain');
+    mark.style.border = style === 'plain' ? 'none' : '1.2mm solid black';
+    mark.style.borderRadius = style === 'circle' ? '50%' : '0';
+  });
+}
+
+fields.forEach(id => {
+  document.getElementById(id).addEventListener('input', updateAllLabels);
 });
 
-if(document.readyState === 'loading'){
- document.addEventListener('DOMContentLoaded', applyMarkStyle, {once:true});
-} else {
- applyMarkStyle();
-}
+[
+  'top', 'bottom', 'xoffset', 'rotatePrint',
+  'titleSize', 'bodySize', 'border', 'markStyle'
+].forEach(id => {
+  document.getElementById(id).addEventListener('input', applySettings);
+  document.getElementById(id).addEventListener('change', applySettings);
+});
+
+document.getElementById('updateAll').addEventListener('click', updateAllLabels);
+
+document.getElementById('print').addEventListener('click', () => {
+  window.print();
+});
+
+document.getElementById('reset').addEventListener('click', () => {
+  const defaults = {
+    product: 'Biologische Herbal Chai Spice',
+    productCode: '22602880',
+    description: '5x20.000 vouwplakken',
+    mark: 'A',
+    quantity: '450 Stuks',
+    company: 'Drukkerij Coenradi',
+    street: 'Simon Stevinstraat 12',
+    postcode: '8013 NB',
+    city: 'Zwolle'
+  };
+
+  Object.keys(defaults).forEach(id => {
+    document.getElementById(id).value = defaults[id];
+  });
+
+  document.getElementById('markStyle').value = 'circle';
+  document.getElementById('top').value = 7;
+  document.getElementById('bottom').value = 10;
+  document.getElementById('xoffset').value = 0;
+  document.getElementById('rotatePrint').value = '180';
+  document.getElementById('titleSize').value = 13;
+  document.getElementById('bodySize').value = 10.5;
+  document.getElementById('border').value = '1px solid #555';
+
+  buildLabels();
+});
+
+buildLabels();
 </script>
+
 </body>
 </html>
