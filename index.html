@@ -56,6 +56,9 @@ button { border:0; border-radius:8px; padding:10px 12px; cursor:pointer; font-we
   header,.controls,.toolbar,.panel:not(.preview-panel) { display:none!important; }
   .app { display:block; padding:0; margin:0; }
   .preview-panel { padding:0; box-shadow:none; border-radius:0; }
+  /* Print only the A4 sheet: hide preview heading and the helper text below it. */
+  .preview-panel > h2,
+  .preview-panel > .small { display:none !important; }
   .preview-wrap { padding:0; background:white; overflow:visible; }
   .sheet { width:210mm; height:297mm; margin:0; box-shadow:none; overflow:hidden; transform:none !important; }
   .labels { left:var(--x-offset) !important; top:var(--top) !important; width:212mm; height:calc(297mm - var(--top) - var(--bottom)); grid-template-columns:repeat(2,106mm); grid-template-rows:repeat(4,69mm); row-gap:calc((297mm - var(--top) - var(--bottom) - 276mm) / 3); }
